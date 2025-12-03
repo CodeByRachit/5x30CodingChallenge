@@ -1,0 +1,54 @@
+3625. Count Number of Trapezoids II
+Solution 
+
+class Solution {
+public:
+    long long gcdll(long long a, long long b) {
+        return b == 0 ? a : gcdll(b, a % b);
+    }
+    long long countTrapezoids(vector<vector<int>>& points) {
+        int n = points.size();
+        unordered_map<long long, vector<pair<int,int>>> mp;
+        mp.reserve(200000);
+        mp.max_load_factor(0.7);
+        auto encode = [&](int dy, int dx){
+            if (dx == 0){
+                return (long long)1e9;
+            }
+            long long g = gcdll(abs(dy), abs(dx));
+            dy /= g;
+            dx /= g;
+            if (dx < 0) { dy = -dy; dx = -dx; }
+            return ((long long)dy << 32) ^ (long long)(dx & 0xffffffff);
+        };
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                int dy = points[j][1] - points[i][1];
+                int dx = points[j][0] - points[i][0];
+                long long key = encode(dy, dx);
+                mp[key].push_back({i, j});
+            }
+        }
+        long long ans = 0;
+        for (auto &it : mp) {
+            auto &seg = it.second;
+            int m = seg.size();
+            if (m < 2) continue;
+            long long total = 1LL * m * (m - 1) / 2;
+            long long bad = 0;
+            unordered_map<int, int> cnt;
+            cnt.reserve(2*m);
+            cnt.max_load_factor(0.7);
+            for (auto &p : seg) {
+                cnt[p.first]++;
+                cnt[p.second]++;
+            }
+            for (auto &x : cnt) {
+                long long c = x.second;
+                if (c >= 2) bad += c * (c - 1) / 2;
+            }
+            ans += (total - bad);
+        }
+        return ans;
+    }
+};
