@@ -1,54 +1,128 @@
 3625. Count Number of Trapezoids II
 Solution 
 
+#include <bits/stdc++.h>
+using namespace std;
+
 class Solution {
 public:
-    long long gcdll(long long a, long long b) {
-        return b == 0 ? a : gcdll(b, a % b);
+    using int64 = long long;
+    // normalize direction (dx,dy) to gcd reduced and canonical sign
+    static void normalize_dir(int &dx, int &dy) {
+        if (dx == 0 && dy == 0) return;
+        int g = std::gcd(abs(dx), abs(dy));
+        dx /= g; dy /= g;
+        if (dx < 0 || (dx == 0 && dy < 0)) { dx = -dx; dy = -dy; }
     }
+
+    // pack two 32-bit signed ints into a uint64_t canonical key
+    static inline uint64_t pack32_to64(int a, int b) {
+        return ( (uint64_t)(uint32_t)a << 32 ) | (uint64_t)(uint32_t)b;
+    }
+
+    // pack two 32-bit (or 64-bit) ints into uint64_t using uint32_t cast for each part
+    static inline uint64_t pack_mid(int64 mx, int64 my) {
+        // mx, my fit in 32-bit signed sums for coords in [-1000,1000] -> sum in [-2000,2000]
+        return ( (uint64_t)(uint32_t)mx << 32 ) | (uint64_t)(uint32_t)my;
+    }
+
     long long countTrapezoids(vector<vector<int>>& points) {
         int n = points.size();
-        unordered_map<long long, vector<pair<int,int>>> mp;
-        mp.reserve(200000);
-        mp.max_load_factor(0.7);
-        auto encode = [&](int dy, int dx){
-            if (dx == 0){
-                return (long long)1e9;
-            }
-            long long g = gcdll(abs(dy), abs(dx));
-            dy /= g;
-            dx /= g;
-            if (dx < 0) { dy = -dy; dx = -dx; }
-            return ((long long)dy << 32) ^ (long long)(dx & 0xffffffff);
-        };
-        for (int i = 0; i < n; i++) {
-            for (int j = i + 1; j < n; j++) {
-                int dy = points[j][1] - points[i][1];
-                int dx = points[j][0] - points[i][0];
-                long long key = encode(dy, dx);
-                mp[key].push_back({i, j});
+        if (n < 4) return 0LL;
+
+        // Step 1: For every unordered pair (i,j) build:
+        //  - slopeKey (dx,dy) normalized
+        //  - c = dy*x_i - dx*y_i  (line offset) -> group by (slopeKey,c) to count number of point-pairs on each line
+        // We'll accumulate counts into: map slopeKey -> map c -> pairCount (number of unordered point pairs lying on that line)
+        unordered_map<uint64_t, unordered_map<int64,int>> slope_line_pairs;
+        slope_line_pairs.reserve((size_t)n * (size_t)n / 4);
+
+        // Also build vector of (midKey, dirKey) for parallelogram counting
+        vector<pair<uint64_t, uint64_t>> mid_dir;
+        mid_dir.reserve((size_t)n * (n - 1) / 2);
+
+        for (int i = 0; i < n; ++i) {
+            int xi = points[i][0], yi = points[i][1];
+            for (int j = i + 1; j < n; ++j) {
+                int xj = points[j][0], yj = points[j][1];
+
+                // slope direction between i and j
+                int dx = xj - xi;
+                int dy = yj - yi;
+                normalize_dir(dx, dy);
+                uint64_t slopeKey = pack32_to64(dx, dy);
+
+                // c for the line (invariant for points on same line with this direction)
+                int64 c = (int64)dy * xi - (int64)dx * yi;
+                slope_line_pairs[slopeKey][c]++;
+
+                // For parallelogram: midpoint and diagonal direction
+                int64 mx = (int64)xi + xj;
+                int64 my = (int64)yi + yj;
+                uint64_t midKey = pack_mid(mx, my);
+
+                // diagonal direction normalized (same normalization)
+                int ddx = xj - xi;
+                int ddy = yj - yi;
+                normalize_dir(ddx, ddy);
+                uint64_t dirKey = pack32_to64(ddx, ddy);
+
+                mid_dir.emplace_back(midKey, dirKey);
             }
         }
-        long long ans = 0;
-        for (auto &it : mp) {
-            auto &seg = it.second;
-            int m = seg.size();
-            if (m < 2) continue;
-            long long total = 1LL * m * (m - 1) / 2;
-            long long bad = 0;
-            unordered_map<int, int> cnt;
-            cnt.reserve(2*m);
-            cnt.max_load_factor(0.7);
-            for (auto &p : seg) {
-                cnt[p.first]++;
-                cnt[p.second]++;
+
+        // Step 2: compute S from slope_line_pairs.
+        // For each slope, each inner map entry value = number of unordered point-pairs on that line = C(m,2).
+        // Let comb_i = number of unordered pairs on line i.
+        // sum over unordered lines i<j comb_i * comb_j = (sumComb^2 - sumSquares)/2
+        long long S = 0;
+        S = 0;
+        for (auto &outer : slope_line_pairs) {
+            long long sumComb = 0;
+            long long sumSquares = 0;
+            auto &inner = outer.second;
+            // each inner value is number of unordered point-pairs on that specific line
+            for (auto &p : inner) {
+                long long pairCount = p.second; // equals C(m,2) for that line
+                sumComb += pairCount;
+                sumSquares += pairCount * pairCount;
             }
-            for (auto &x : cnt) {
-                long long c = x.second;
-                if (c >= 2) bad += c * (c - 1) / 2;
+            if (sumComb >= 2) {
+                S += (sumComb * sumComb - sumSquares) / 2;
             }
-            ans += (total - bad);
         }
+
+        // Step 3: compute P (number of non-degenerate parallelograms)
+        // Use sorted mid_dir vector: for each midpoint group of size t, total pair-of-pairs = C(t,2).
+        // Subtract degenerate combos where the two diagonals are collinear: within group, for each dir count d, subtract C(d,2).
+        sort(mid_dir.begin(), mid_dir.end(), [](const auto &a, const auto &b){
+            if (a.first != b.first) return a.first < b.first;
+            return a.second < b.second;
+        });
+
+        long long P = 0;
+        size_t idx = 0;
+        while (idx < mid_dir.size()) {
+            size_t j = idx;
+            // find run with same midpoint
+            while (j < mid_dir.size() && mid_dir[j].first == mid_dir[idx].first) ++j;
+            size_t t = j - idx;
+            if (t >= 2) {
+                P += (long long)t * (t - 1) / 2; // all combos
+                // subtract degenerate where dir equal (collinear diagonals)
+                size_t k = idx;
+                while (k < j) {
+                    size_t l = k;
+                    while (l < j && mid_dir[l].second == mid_dir[k].second) ++l;
+                    size_t d = l - k;
+                    if (d >= 2) P -= (long long)d * (d - 1) / 2;
+                    k = l;
+                }
+            }
+            idx = j;
+        }
+
+        long long ans = S - P;
         return ans;
     }
 };
