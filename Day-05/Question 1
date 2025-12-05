@@ -1,0 +1,12 @@
+3432. Count Partitions with Even Sum Difference
+Solution 
+
+class Solution {
+public:
+    int countPartitions(vector<int>& nums) {
+        int n = nums.size();
+        int total = 0;
+        for (int x : nums) total += x;
+        return (total % 2 == 0) ? (n - 1) : 0;
+    }
+};
