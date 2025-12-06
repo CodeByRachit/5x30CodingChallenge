@@ -1,0 +1,34 @@
+3578. Count Partitions With Max-Min Difference at Most K
+Solution 
+
+class Solution {
+public:
+    int countPartitions(vector<int>& nums, int k) {
+        const int MOD = 1'000'000'007;
+        int n = nums.size();
+        vector<long long> dp(n + 1, 0);
+        dp[0] = 1;
+        long long windowSum = 0;
+        deque<int> maxQ, minQ;
+        int j = 0;
+        for (int i = 0; i < n; ++i) {
+            while (!maxQ.empty() && nums[maxQ.back()] <= nums[i])
+                maxQ.pop_back();
+            maxQ.push_back(i);
+            while (!minQ.empty() && nums[minQ.back()] >= nums[i])
+                minQ.pop_back();
+            minQ.push_back(i);
+            while (!maxQ.empty() && !minQ.empty() &&
+                   nums[maxQ.front()] - nums[minQ.front()] > k)
+            {
+                windowSum = (windowSum - dp[j] + MOD) % MOD;
+                if (maxQ.front() == j) maxQ.pop_front();
+                if (minQ.front() == j) minQ.pop_front();
+                j++;
+            }
+            windowSum = (windowSum + dp[i]) % MOD;
+            dp[i + 1] = windowSum;
+        }
+        return dp[n];
+    }
+};
