@@ -1,0 +1,17 @@
+62. Unique Paths
+Solution 
+
+
+class Solution {
+public:
+    int uniquePaths(int m, int n) {
+        long long ans = 1;
+        int R = m - 1, C = n - 1;
+        int total = R + C;
+        int k = min(R, C);
+        for (int i = 1; i <= k; i++) {
+            ans = ans * (total - k + i) / i;
+        }
+        return ans;
+    }
+};
