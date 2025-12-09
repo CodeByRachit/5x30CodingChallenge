@@ -1,0 +1,29 @@
+3583. Count Special Triplets
+Solution 
+
+
+class Solution {
+public:
+    int specialTriplets(vector<int>& nums) {
+        const int MOD = 1'000'000'007;
+        unordered_map<int,long long> rightCount, leftCount;
+        for (int x : nums) rightCount[x]++;
+        long long ans = 0;
+        for (int j = 0; j < (int)nums.size(); j++) {
+            int x = nums[j];
+            rightCount[x]--;
+            long long need = (long long)x * 2;
+            if (need <= 1000000) {
+                if (leftCount.count((int)need) && rightCount.count((int)need)) {
+                    ans = (ans + leftCount[(int)need] * rightCount[(int)need]) % MOD;
+                }
+            } else {
+                if (leftCount.count((int)need) && rightCount.count((int)need)) {
+                    ans = (ans + leftCount[(int)need] * rightCount[(int)need]) % MOD;
+                }
+            }
+            leftCount[x]++;
+        }
+        return (int)ans;
+    }
+};
