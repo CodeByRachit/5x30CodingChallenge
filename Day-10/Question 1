@@ -1,0 +1,20 @@
+3577. Count the Number of Computer Unlocking Permutations
+Solution 
+
+using ll = long long;
+static const ll MOD = 1000000007;
+class Solution {
+public:
+    int countPermutations(vector<int>& complexity){
+        int n = complexity.size();
+        if(n <= 1) return 1;
+        int curmin = complexity[0];
+        for(int i=1;i<n;i++){
+            if(!(curmin < complexity[i])) return 0;
+            curmin = min(curmin, complexity[i]);
+        }
+        ll ans = 1;
+        for(int i=1;i<=n-1;i++) ans = (ans * i) % MOD;
+        return (int)ans;
+    }
+};
