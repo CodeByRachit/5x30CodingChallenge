@@ -1,0 +1,33 @@
+71. Simplify Path
+Solution 
+
+class Solution {
+public:
+    string simplifyPath(string path) {
+        vector<string> stk;
+        string part;
+        for (int i = 0; i <= path.size(); i++) {
+            if (i == path.size() || path[i] == '/') {
+                if (!part.empty()) {
+                    if (part == ".") {
+                    } 
+                    else if (part == "..") {
+                        if (!stk.empty()) stk.pop_back();
+                    } 
+                    else {
+                        stk.push_back(part);
+                    }
+                }
+                part.clear();
+            } else {
+                part.push_back(path[i]);
+            }
+        }
+        if (stk.empty()) return "/";
+        string result;
+        for (string &dir : stk) {
+            result += "/" + dir;
+        }
+        return result;
+    }
+};
