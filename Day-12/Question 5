@@ -1,0 +1,32 @@
+79. Word Search
+Solution 
+
+class Solution {
+public:
+    int m, n;
+    bool exist(vector<vector<char>>& board, string word) {
+        m = board.size();
+        n = board[0].size();
+        for(int i = 0; i < m; i++) {
+            for(int j = 0; j < n; j++) {
+                if(board[i][j] == word[0]) {
+                    if(dfs(board, word, 0, i, j)) return true;
+                }
+            }
+        }
+        return false;
+    }
+    bool dfs(vector<vector<char>>& b, string& w, int idx, int x, int y) {
+        if(idx == w.size()) return true;
+        if(x < 0 || y < 0 || x >= m || y >= n || b[x][y] != w[idx]) return false;
+        char temp = b[x][y];
+        b[x][y] = '#';
+        bool found = dfs(b, w, idx+1, x+1, y)
+                  || dfs(b, w, idx+1, x-1, y)
+                  || dfs(b, w, idx+1, x, y+1)
+                  || dfs(b, w, idx+1, x, y-1);
+
+        b[x][y] = temp;
+        return found;
+    }
+};
