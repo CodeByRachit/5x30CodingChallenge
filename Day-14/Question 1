@@ -1,0 +1,31 @@
+ 2147. Number of Ways to Divide a Long Corridor
+Solution 
+
+class Solution {
+public:
+    int numberOfWays(string corridor) {
+        const long long MOD = 1e9 + 7;
+        int seats = 0;
+        for (char c : corridor) {
+            if (c == 'S') seats++;
+        }
+        if (seats == 0 || seats % 2 != 0) return 0;
+        long long ways = 1;
+        int seatCount = 0;
+        int plantsBetween = 0;
+        for (char c : corridor) {
+            if (c == 'S') {
+                seatCount++;
+                if (seatCount % 2 == 0) {
+                    plantsBetween = 0;
+                }
+                else if (seatCount > 1) {
+                    ways = (ways * (plantsBetween + 1)) % MOD;
+                }
+            } else if (seatCount % 2 == 0) {
+                plantsBetween++;
+            }
+        }
+        return ways;
+    }
+};
