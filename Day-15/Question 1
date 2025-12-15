@@ -1,0 +1,19 @@
+2110. Number of Smooth Descent Periods of a Stock
+Solution 
+
+class Solution {
+public:
+    long long getDescentPeriods(vector<int>& prices) {
+        long long ans = 1;
+        long long curr_len = 1;
+        for (int i = 1; i < prices.size(); i++) {
+            if (prices[i] == prices[i - 1] - 1)
+                curr_len++;
+            else
+                curr_len = 1;
+            
+            ans += curr_len;
+        }
+        return ans;
+    }
+};
