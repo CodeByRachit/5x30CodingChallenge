@@ -1,62 +1,62 @@
 3562. Maximum Profit from Trading Stocks with Discounts
 Solution 
 
+#include <bits/stdc++.h>
+using namespace std;
+
 class Solution {
 public:
-    int n, B;
-    vector<int> present, future;
-    vector<vector<int>> tree;
+    int B;
+    vector<int> p, f;
+    vector<vector<int>> g;
     vector<vector<int>> dp0, dp1;
+    const int NEG = -1000000000;
+
     void dfs(int u) {
-        dp0[u] = vector<int>(B + 1, 0);
-        dp1[u] = vector<int>(B + 1, 0);
-        for (int v : tree[u]) {
+        vector<int> cur0(B + 1, NEG), cur1(B + 1, NEG);
+        cur0[0] = 0;
+        cur1[0] = 0;
+        for (int v : g[u]) {
             dfs(v);
-            vector<int> ndp0(B + 1, -1000000000);
-            vector<int> ndp1(B + 1, -1000000000);
-            for (int i = 0; i <= B; i++) {
-                if (dp0[u][i] < 0) continue;
-                for (int j = 0; j + i <= B; j++) {
-                    ndp0[i + j] = max(ndp0[i + j], dp0[u][i] + dp0[v][j]);
+            vector<int> nc0(B + 1, NEG), nc1(B + 1, NEG);
+            for (int i = 0; i <= B; ++i) if (cur0[i] > NEG/2) {
+                for (int j = 0; j + i <= B; ++j) if (dp0[v][j] > NEG/2) {
+                    nc0[i + j] = max(nc0[i + j], cur0[i] + dp0[v][j]);
                 }
             }
-            for (int i = 0; i <= B; i++) {
-                if (dp1[u][i] < 0) continue;
-                for (int j = 0; j + i <= B; j++) {
-                    ndp1[i + j] = max(ndp1[i + j], dp1[u][i] + dp1[v][j]);
+            for (int i = 0; i <= B; ++i) if (cur1[i] > NEG/2) {
+                for (int j = 0; j + i <= B; ++j) if (dp1[v][j] > NEG/2) {
+                    nc1[i + j] = max(nc1[i + j], cur1[i] + dp1[v][j]);
                 }
             }
-            dp0[u] = ndp0;
-            dp1[u] = ndp1;
+            cur0.swap(nc0);
+            cur1.swap(nc1);
         }
-        for (int b = B; b >= 0; b--) {
-            int c0 = present[u];
-            if (b >= c0) {
-                dp0[u][b] = max(dp0[u][b], dp1[u][b - c0] + future[u] - c0);
-            }
-            int c1 = present[u] / 2;
-            if (b >= c1) {
-                dp1[u][b] = max(dp1[u][b], dp1[u][b - c1] + future[u] - c1);
-            }
+        dp0[u] = cur0;
+        dp1[u] = cur0;
+        int full = p[u];
+        int disc = p[u] / 2;
+        int profFull = f[u] - full;
+        int profDisc = f[u] - disc;
+        for (int x = 0; x + full <= B; ++x) if (cur1[x] > NEG/2) {
+            dp0[u][x + full] = max(dp0[u][x + full], cur1[x] + profFull);
+        }
+        for (int x = 0; x + disc <= B; ++x) if (cur1[x] > NEG/2) {
+            dp1[u][x + disc] = max(dp1[u][x + disc], cur1[x] + profDisc);
         }
     }
-    int maxProfit(int n, vector<int>& present, vector<int>& future,
-                  vector<vector<int>>& hierarchy, int budget) {
-        this->n = n;
-        this->present = present;
-        this->future = future;
+
+    int maxProfit(int n, vector<int>& present, vector<int>& future, vector<vector<int>>& hierarchy, int budget) {
         B = budget;
-        tree.assign(n, {});
-        for (auto &e : hierarchy) {
-            tree[e[0] - 1].push_back(e[1] - 1);
-        }
-        dp0.resize(n);
-        dp1.resize(n);
+        p = present;
+        f = future;
+        g.assign(n, {});
+        for (auto &e : hierarchy) g[e[0] - 1].push_back(e[1] - 1);
+        dp0.assign(n, vector<int>(B + 1, NEG));
+        dp1.assign(n, vector<int>(B + 1, NEG));
         dfs(0);
         int ans = 0;
-        for (int b = 0; b <= B; b++) {
-            ans = max(ans, dp0[0][b]);
-        }
+        for (int b = 0; b <= B; ++b) ans = max(ans, dp0[0][b]);
         return ans;
     }
 };
