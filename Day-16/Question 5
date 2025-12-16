@@ -1,0 +1,27 @@
+95. Unique Binary Search Trees II
+Solution 
+
+class Solution {
+public:
+    vector<TreeNode*> build(int l, int r) {
+        if (l > r) return {nullptr};
+        vector<TreeNode*> res;
+        for (int i = l; i <= r; i++) {
+            vector<TreeNode*> left = build(l, i - 1);
+            vector<TreeNode*> right = build(i + 1, r);
+            for (auto L : left) {
+                for (auto R : right) {
+                    TreeNode* root = new TreeNode(i);
+                    root->left = L;
+                    root->right = R;
+                    res.push_back(root);
+                }
+            }
+        }
+        return res;
+    }
+    vector<TreeNode*> generateTrees(int n) {
+        if (n == 0) return {};
+        return build(1, n);
+    }
+};
