@@ -1,0 +1,25 @@
+93. Restore IP Addresses
+Solution 
+
+class Solution {
+public:
+    vector<string> ans;
+    void dfs(string& s, int idx, int parts, string cur) {
+        if (parts == 4 && idx == s.size()) {
+            ans.push_back(cur.substr(0, cur.size() - 1));
+            return;
+        }
+        if (parts == 4 || idx == s.size()) return;
+        int val = 0;
+        for (int i = idx; i < s.size() && i < idx + 3; i++) {
+            val = val * 10 + (s[i] - '0');
+            if (val > 255) break;
+            if (i > idx && s[idx] == '0') break;
+            dfs(s, i + 1, parts + 1, cur + to_string(val) + ".");
+        }
+    }
+    vector<string> restoreIpAddresses(string s) {
+        dfs(s, 0, 0, "");
+        return ans;
+    }
+};
