@@ -1,0 +1,40 @@
+99. Recover Binary Search Tree
+Solution 
+
+class Solution {
+public:
+    void recoverTree(TreeNode* root) {
+        TreeNode *first = nullptr, *second = nullptr, *prev = nullptr;
+        TreeNode *cur = root;
+        while (cur) {
+            if (!cur->left) {
+                if (prev && prev->val > cur->val) {
+                    if (!first) first = prev;
+                    second = cur;
+                }
+                prev = cur;
+                cur = cur->right;
+            } else {
+                TreeNode* pre = cur->left;
+                while (pre->right && pre->right != cur) {
+                    pre = pre->right;
+                }
+                if (!pre->right) {
+                    pre->right = cur;
+                    cur = cur->left;
+                } else {
+                    pre->right = nullptr;
+                    if (prev && prev->val > cur->val) {
+                        if (!first) first = prev;
+                        second = cur;
+                    }
+                    prev = cur;
+                    cur = cur->right;
+                }
+            }
+        }
+        if (first && second) {
+            swap(first->val, second->val);
+        }
+    }
+};
