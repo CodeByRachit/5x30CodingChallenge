@@ -1,0 +1,63 @@
+126. Word Ladder II
+Solution 
+
+class Solution {
+public:
+    vector<vector<string>> ans;
+    unordered_map<string, vector<string>> parent;
+    unordered_map<string, int> dist;
+    string beginWord;
+    void dfs(const string& word, vector<string>& path) {
+        if (word == beginWord) {
+            vector<string> temp = path;
+            reverse(temp.begin(), temp.end());
+            ans.push_back(temp);
+            return;
+        }
+        for (const string& p : parent[word]) {
+            path.push_back(p);
+            dfs(p, path);
+            path.pop_back();
+        }
+    }
+    vector<vector<string>> findLadders(
+        string begin, string end, vector<string>& wordList
+    ) {
+        unordered_set<string> dict(wordList.begin(), wordList.end());
+        if (!dict.count(end)) return {};
+        beginWord = begin;
+        queue<string> q;
+        q.push(begin);
+        dist[begin] = 0;
+        int L = begin.size();
+        while (!q.empty()) {
+            string curr = q.front();
+            q.pop();
+            int d = dist[curr];
+            string temp = curr;
+            for (int i = 0; i < L; i++) {
+                char original = temp[i];
+                for (char c = 'a'; c <= 'z'; c++) {
+                    if (c == original) continue;
+                    temp[i] = c;
+                    if (dict.count(temp)) {
+                        if (!dist.count(temp)) {
+                            dist[temp] = d + 1;
+                            parent[temp].push_back(curr);
+                            q.push(temp);
+                        } 
+                        else if (dist[temp] == d + 1) {
+                            parent[temp].push_back(curr);
+                        }
+                    }
+                }
+                temp[i] = original;
+            }
+        }
+        if (!dist.count(end)) return {};
+        vector<string> path;
+        path.push_back(end);
+        dfs(end, path);
+        return ans;
+    }
+};
