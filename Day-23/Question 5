@@ -1,0 +1,29 @@
+140. Word Break II
+solution
+
+class Solution {
+public:
+    vector<string> wordBreak(string s, vector<string>& wordDict) {
+        unordered_set<string> dict(wordDict.begin(), wordDict.end());
+        unordered_map<int, vector<string>> memo;
+        return dfs(0, s, dict, memo);
+    }
+    vector<string> dfs(int idx, string& s, unordered_set<string>& dict,
+                       unordered_map<int, vector<string>>& memo) {
+        if (memo.count(idx)) return memo[idx];
+        vector<string> res;
+        if (idx == s.size()) {
+            res.push_back("");
+            return memo[idx] = res;
+        }
+        for (int len = 1; idx + len <= s.size(); len++) {
+            string word = s.substr(idx, len);
+            if (!dict.count(word)) continue;
+            vector<string> next = dfs(idx + len, s, dict, memo);
+            for (string& str : next) {
+                res.push_back(str.empty() ? word : word + " " + str);
+            }
+        }
+        return memo[idx] = res;
+    }
+};
