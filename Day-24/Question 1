@@ -1,0 +1,18 @@
+3074. Apple Redistribution into Boxes
+Solution 
+
+class Solution {
+public:
+    int minimumBoxes(vector<int>& apple, vector<int>& capacity) {
+        int total = 0;
+        for (int x : apple) total += x;
+        sort(capacity.begin(), capacity.end(), greater<int>());
+        int sum = 0, count = 0;
+        for (int c : capacity) {
+            sum += c;
+            count++;
+            if (sum >= total) break;
+        }
+        return count;
+    }
+};
