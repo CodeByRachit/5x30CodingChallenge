@@ -1,0 +1,21 @@
+437. Path Sum III
+solution
+
+class Solution {
+public:
+    int pathSum(TreeNode* root, int targetSum) {
+        unordered_map<long long, int> mp;
+        mp[0] = 1;
+        return dfs(root, 0, targetSum, mp);
+    }
+    int dfs(TreeNode* node, long long curr, int target, unordered_map<long long, int>& mp) {
+        if (!node) return 0;
+        curr += node->val;
+        int res = mp[curr - target];
+        mp[curr]++;
+        res += dfs(node->left, curr, target, mp);
+        res += dfs(node->right, curr, target, mp);
+        mp[curr]--;
+        return res;
+    }
+};
