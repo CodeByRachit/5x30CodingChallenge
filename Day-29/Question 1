@@ -1,0 +1,26 @@
+756. Pyramid Transition Matrix
+solution 
+
+class Solution {
+public:
+    bool pyramidTransition(string bottom, vector<string>& allowed) {
+        unordered_map<string, vector<char>> mp;
+        for (auto& s : allowed) {
+            mp[s.substr(0, 2)].push_back(s[2]);
+        }
+        return dfs(bottom, "", 0, mp);
+    }
+    bool dfs(string curr, string next, int idx,
+             unordered_map<string, vector<char>>& mp) {
+        if (curr.size() == 1) return true;
+        if (idx == curr.size() - 1)
+            return dfs(next, "", 0, mp);
+        string key = curr.substr(idx, 2);
+        if (!mp.count(key)) return false;
+        for (char c : mp[key]) {
+            if (dfs(curr, next + c, idx + 1, mp))
+                return true;
+        }
+        return false;
+    }
+};
