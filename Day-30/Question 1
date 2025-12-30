@@ -1,0 +1,35 @@
+840. Magic Squares In Grid
+solution 
+
+class Solution {
+public:
+    int numMagicSquaresInside(vector<vector<int>>& grid) {
+        int r = grid.size();
+        int c = grid[0].size();
+        int ans = 0;
+        for (int i = 0; i + 2 < r; i++) {
+            for (int j = 0; j + 2 < c; j++) {
+                if (isMagic(grid, i, j)) ans++;
+            }
+        }
+        return ans;
+    }
+    bool isMagic(vector<vector<int>>& g, int x, int y) {
+        vector<bool> seen(10, false);
+        for (int i = x; i < x + 3; i++) {
+            for (int j = y; j < y + 3; j++) {
+                int v = g[i][j];
+                if (v < 1 || v > 9 || seen[v]) return false;
+                seen[v] = true;
+            }
+        }
+        int s = g[x][y] + g[x][y + 1] + g[x][y + 2];
+        for (int i = 0; i < 3; i++) {
+            if (g[x + i][y] + g[x + i][y + 1] + g[x + i][y + 2] != s) return false;
+            if (g[x][y + i] + g[x + 1][y + i] + g[x + 2][y + i] != s) return false;
+        }
+        if (g[x][y] + g[x + 1][y + 1] + g[x + 2][y + 2] != s) return false;
+        if (g[x][y + 2] + g[x + 1][y + 1] + g[x + 2][y] != s) return false;
+        return true;
+    }
+};
