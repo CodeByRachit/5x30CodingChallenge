@@ -1,0 +1,27 @@
+2336. Smallest Number in Infinite Set
+solution 
+
+class SmallestInfiniteSet {
+    int curr;
+    priority_queue<int, vector<int>, greater<int>> pq;
+    unordered_set<int> present;
+public:
+    SmallestInfiniteSet() {
+        curr = 1;
+    }
+    int popSmallest() {
+        if (!pq.empty()) {
+            int x = pq.top();
+            pq.pop();
+            present.erase(x);
+            return x;
+        }
+        return curr++;
+    }
+    void addBack(int num) {
+        if (num < curr && !present.count(num)) {
+            pq.push(num);
+            present.insert(num);
+        }
+    }
+};
